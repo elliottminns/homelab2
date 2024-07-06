@@ -1,0 +1,26 @@
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx-internal
+    hostname: "argocd.home"
+repoServer:
+  extraContainers:
+    - name: lovely-plugin
+      image: ghcr.io/crumbhole/lovely:1.0.3
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+      volumeMounts:
+        # Import the repo-server's plugin binary
+        - mountPath: /var/run/argocd
+          name: var-files
+        - mountPath: /home/argocd/cmp-server/plugins
+          name: plugins
+          # Starting with v2.4, do NOT mount the same tmp volume as the repo-server container. The filesystem separation helps
+          # mitigate path traversal attacks.
+        - mountPath: /tmp
+          name: lovely-tmp
+  volumes:
+  # A temporary directory for the tool to work in.
+  - emptyDir: {}
+    name: lovely-tmp

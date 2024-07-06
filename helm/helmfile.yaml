@@ -1,0 +1,77 @@
+repositories:
+  - name: longhorn
+    url: https://charts.longhorn.io
+  - name: metallb
+    url: https://metallb.github.io/metallb
+  - name: mojo2600
+    url: https://mojo2600.github.io/pihole-kubernetes/
+  - name: ingress-nginx
+    url: https://kubernetes.github.io/ingress-nginx
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: prometheus-community
+    url: https://prometheus-community.github.io/helm-charts
+  - name: fluxcd-community
+    url: https://fluxcd-community.github.io/helm-charts
+  - name: argo
+    url: https://argoproj.github.io/argo-helm
+---
+releases:
+  # Distributed storage
+  - name: longhorn
+    namespace: longhorn-system
+    chart: longhorn/longhorn
+    version: 1.6.2
+
+  # Load balancer
+  - name: metallb
+    chart: metallb/metallb
+    namespace: metallb-system
+    createNamespace: true
+    version: 0.14.5
+
+  # pihole
+  - name: pihole
+    namespace: pihole-system
+    createNamespace: true
+    chart: mojo2600/pihole
+    version: 2.18.0
+    values:
+      - ./values/pihole.values.yaml
+
+  # Ingress for local network
+  - name: ingress-nginx-internal
+    namespace: nginx-system
+    chart: ingress-nginx/ingress-nginx
+    version: 4.10.1
+    values:
+      - ./values/nginx-internal.values.yaml
+
+  # Automatic DNS for pihole
+  - name: externaldns-pihole
+    namespace: pihole-system
+    chart: bitnami/external-dns
+    version: 8.0.1
+    values:
+      - ./values/externaldns.values.yaml
+
+  # Prometheus
+  - name: prometheus-operator
+    namespace: prometheus-system
+    createNamespace: true
+    chart: prometheus-community/kube-prometheus-stack
+    version: 61.2.0
+
+  # Flux
+  - name: fluxcd
+    namespace: flux-system
+    chart: fluxcd-community/flux2
+    version: 2.13.0
+
+  # ArgoCD
+  - name: argocd
+    namespace: argocd
+    chart: argo/argo-cd
+    version: 7.3.4
+    values:
+      - ./values/argocd.values.yaml
